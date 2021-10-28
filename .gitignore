@@ -1,0 +1,7 @@
+*/output/
+# ignore .idea
+.idea/
+*/.idea/
+/Data/
+
+*/__pycache__/
