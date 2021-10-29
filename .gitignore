@@ -3,6 +3,6 @@
 .idea/
 */.idea/
 /Data/
-
+# ignore pycache
 */__pycache__/
 **/__pycache__/
