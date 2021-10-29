@@ -172,7 +172,7 @@ if __name__ == '__main__':
     logparser_event_file = '../../Data/logparser_result/Drain/HDFS_split_40w.log_templates.csv'
     anomaly_label_file = '../../Data/log/hdfs/anomaly_label.csv'
 
-    sequential_directory = '../Data/DrainResult-HDFS/loganomaly/sequential_files/'
+    sequential_directory = '../../Data/DrainResult-HDFS/loganomaly/sequential_files/'
     train_file_name = 'loganomaly_train_file'
     test_file_name = 'loganomaly_test_file'
     valid_file_name = 'loganomaly_valid_file'
