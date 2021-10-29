@@ -180,9 +180,9 @@ if __name__ == '__main__':
 
     num_candidates = 5
 
-    logparser_structed_file = '../Data/logparser_result/Drain/HDFS_split_40w.log_structured.csv'
-    logparser_event_file = '../Data/logparser_result/Drain/HDFS_split_40w.log_templates.csv'
-    anomaly_label_file = '../Data/log/hdfs/anomaly_label.csv'
+    logparser_structed_file = '../../Data/logparser_result/Drain/HDFS_split_40w.log_structured.csv'
+    logparser_event_file = '../../Data/logparser_result/Drain/HDFS_split_40w.log_templates.csv'
+    anomaly_label_file = '../../Data/log/hdfs/anomaly_label.csv'
 
     sequential_directory = '../Data/DrainResult-HDFS/loganomaly/sequential_files/'
     train_file_name = 'loganomaly_train_file'
@@ -191,11 +191,11 @@ if __name__ == '__main__':
 
     train_file = sequential_directory + train_file_name
     test_file = sequential_directory + test_file_name
-    train_root_path = '../Data/DrainResult-HDFS/loganomaly_model_train/'
+    train_root_path = '../../Data/DrainResult-HDFS/loganomaly_model_train/'
     model_out_path = train_root_path + 'model_out/'
 
     wordvec_file_path = 'G:\\crawl-300d-2M.vec'
-    pattern_vec_out_path = '../Data/DrainResult-HDFS/loganomaly_model_train/pattern_vec'
+    pattern_vec_out_path = '../../Data/DrainResult-HDFS/loganomaly_model_train/pattern_vec'
 
     do_predict(window_length, input_size_sequential, input_size_quantitive, hidden_size, num_of_layers, num_of_classes,
                model_out_path + 'Adam_batch_size=' + str(batch_size) + ';epoch=' + str(num_epochs) + '.pt',
