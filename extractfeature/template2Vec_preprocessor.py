@@ -11,7 +11,7 @@ import torch
 import unicodedata
 
 from extractfeature.eventid2number import add_numberid_new
-from extractfeature.get_synonym_and_antonym import get_synonym_and_antonym
+# from extractfeature.get_synonym_and_antonym import get_synonym_and_antonym
 
 block_id_regex = r'blk_(|-)[0-9]+'
 special_patterns = {'dfs.FSNamesystem:': ['dfs', 'FS', 'Name', 'system'], 'dfs.FSDataset:': ['dfs', 'FS', 'dataset']}
@@ -83,14 +83,14 @@ def generate_train_and_test_file(logparser_structed_file, logparser_event_file, 
         validation_file_obj.write('BlockId,Sequence,label\n')
         # 正常数据集8：1：1分配在训练集，测试集，验证集
         for i in range(len(normal_block_ids)):
-            if i < len(normal_block_ids) / 8:
+            if i < len(normal_block_ids) * 0.2:
                 # blockid
                 train_file_obj.write(str(normal_block_ids[i]) + ', ')
                 # 序列
                 train_file_obj.write(' '.join([str(num_id) for num_id in session_dic[normal_block_ids[i]]]))
                 # 表示是否异常
                 train_file_obj.write(', 0\n')
-            elif i < len(normal_block_ids) / 9:
+            elif i < len(normal_block_ids) * 0.4:
                 validation_file_obj.write(str(normal_block_ids[i]) + ', ')
                 validation_file_obj.write(' '.join([str(num_id) for num_id in session_dic[normal_block_ids[i]]]))
                 validation_file_obj.write(', 0\n')
@@ -320,9 +320,9 @@ def pattern_to_vec_template_from_log(logparser_event_file, wordvec_path, pattern
     words_list = list(words_set)
     words_list.sort()
     # 获取近义词与反义词集合
-    synonym, antonym, synonym_pair, antonym_pair = get_synonym_and_antonym(words_list)
-    print('近义词：' + str(synonym_pair))
-    print('反义词：' + str(antonym_pair))
+    # synonym, antonym, synonym_pair, antonym_pair = get_synonym_and_antonym(words_list)
+    # print('近义词：' + str(synonym_pair))
+    # print('反义词：' + str(antonym_pair))
     # 单词权重，目前找到的解决方案是所有词向量取平均，因此权重系数全部设置为1
     weight = np.array([1] * len(words_list))
     # 记录每个单词对应的id
