@@ -63,9 +63,8 @@ def generate_label(file_path, window_length, num_of_classes, pattern_vec_file):
 
     seq = torch.tensor(seq_input_data, dtype=torch.float)
     quan = torch.tensor(quan_input_data, dtype=torch.float)
-    in_tensor = torch.cat((seq, quan), dim=-1)
+    in_tensor = torch.cat((seq, quan), dim=-1)     #Put sequential and quantitative data together to avoid problems caused by shuffling
     print("Input tensor shape:", in_tensor.shape)
-    #Put sequence and quantitative data together to avoid problems caused by shuffling
     torch.tensor(output_data, dtype=torch.float)
 
     data_set = TensorDataset(in_tensor, torch.tensor(output_data, dtype=torch.float))
