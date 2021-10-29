@@ -2,7 +2,7 @@ import json
 import time
 import pandas
 import torch
-from LogAnomaly_Train import Model
+from anomalydetection.loganomaly.LogAnomaly_Train import Model
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -19,7 +19,7 @@ def generateTestFile(name):
     log_keys_sequences = list()
     file = pandas.read_csv(name)
     for i in range(len(file)):
-        line = [int(id, 16) for id in file["Sequence"][i].strip().split(' ')]
+        line = [int(id) for id in file["Sequence"][i].strip().split(' ')]
         log_keys_sequences.append(tuple(line))
     return log_keys_sequences
 
@@ -121,7 +121,7 @@ def do_predict(window_length, input_size_sequential, input_size_quantitive, hidd
             else:
                 ground_truth = 0
 
-            print("line:", lineNum,"Predicted Label:", abnormal_flag, "Ground Truth:", ground_truth)
+            #print("line:", lineNum,"Predicted Label:", abnormal_flag, "Ground Truth:", ground_truth)
 
             # When this line(block) is flagged as abnormal
             if abnormal_flag == 1:
@@ -139,6 +139,8 @@ def do_predict(window_length, input_size_sequential, input_size_quantitive, hidd
             lineNum += 1
             ALL += 1
             abnormal_flag = 0
+            if ALL % 100 == 0:
+                print(ALL)
 
         # End of for loop. Move on to the next line (Next block of log events)
 

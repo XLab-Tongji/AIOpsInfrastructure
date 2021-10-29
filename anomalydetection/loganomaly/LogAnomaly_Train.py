@@ -32,7 +32,7 @@ def generate_label(file_path, window_length, num_of_classes, pattern_vec_file):
 
     for i in range(len(train_file)):
         # Each line represents a block of log events
-        line = [int(id, 16) for id in train_file["Sequence"][i].strip().split(' ')]
+        line = [int(id) for id in train_file["Sequence"][i].strip().split(' ')]
         # Skip the lines that are too short
         if len(line) < window_length:
             continue
@@ -118,7 +118,7 @@ def train_model(window_length, input_size_sequential, input_size_quantitive, hid
         for step, (in_tensor, label) in enumerate(data_loader):
 
             seq = in_tensor.index_select(2, torch.arange(300))
-            quan = in_tensor.index_select(2, torch.arange(300, 331))
+            quan = in_tensor.index_select(2, torch.arange(300, 300+num_of_classes))
 
             #print(seq.shape, quan.shape, label.shape)
             #Seperate the sequential and quantitative features
