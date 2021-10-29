@@ -199,4 +199,4 @@ if __name__ == '__main__':
 
     do_predict(window_length, input_size_sequential, input_size_quantitive, hidden_size, num_of_layers, num_of_classes,
                model_out_path + 'Adam_batch_size=' + str(batch_size) + ';epoch=' + str(num_epochs) + '.pt',
-               train_file, pattern_vec_out_path, num_candidates)
+               test_file, pattern_vec_out_path, num_candidates)
