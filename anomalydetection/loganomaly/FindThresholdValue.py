@@ -44,15 +44,9 @@ def generate_predict_and_label(predicted, label, ground_truth):
 moved down each line. As the window moves down each line, if the predicted result doesn't match the ground 
 truth in any of these windows, this block (this line) is flagged as abnormal. """
 def get_threshold_value(window_length, input_size_sequential, input_size_quantitive, hidden_size, num_of_layers, num_of_classes,
-                        model_output_directory, valid_file, pattern_vec_file, threshold):
+                        model_output_directory, valid_file, pattern_vec_file):
     model = LogAnomaly_Test.load_model(input_size_sequential, input_size_quantitive, hidden_size, num_of_layers, num_of_classes,
                        model_output_directory)
-    TP = 0
-    FP = 0
-    TN = 0
-    FN = 0
-    ALL = 0
-
     with open(pattern_vec_file, 'r') as pattern_file:
         PF = json.load(pattern_file)
         pattern_vec = {}
@@ -70,10 +64,8 @@ def get_threshold_value(window_length, input_size_sequential, input_size_quantit
     print('Start Prediction')
     with torch.no_grad():
         batch_num = 0
-        abnormal_flag = 0
         lineNum = 0
         n = 0
-        p = 0
         # Batch with full length
         while n < (len(test_file_loader) - len(test_file_loader) % test_batch_size):
             batch_input_sequential = []
@@ -134,33 +126,14 @@ def get_threshold_value(window_length, input_size_sequential, input_size_quantit
                     line_output[i - current_window_num] = test_output[i]
                     line_label.append(batch_label[i])
 
-                # Determine whether this line is abnormal or not.
-                abnormal_flag = linePrediction_Threshold(line_output, line_label, threshold)
                 if lineNum in abnormal_label:
                     ground_truth = 1
                 else:
                     ground_truth = 0
 
                 generate_predict_and_label(line_output, line_label, ground_truth)
-                print("line:", lineNum, "Predicted Label:", abnormal_flag, "Ground Truth:", ground_truth)
-
-                # When this line(block) is flagged as abnormal
-                if abnormal_flag == 1:
-                    if lineNum in abnormal_label:
-                        TP += 1
-                    else:
-                        FP += 1
-
-                # When this line(block) is not flagged as abnormal
-                else:
-                    if lineNum in abnormal_label:
-                        FN += 1
-                    else:
-                        TN += 1
                 lineNum += 1
-                ALL += 1
                 current_window_num += num_of_windows
-                abnormal_flag = 0
                 # End of for loop. Move on to the next line (Next block of log events)
             batch_num += 1
             n += test_batch_size
@@ -224,54 +197,19 @@ def get_threshold_value(window_length, input_size_sequential, input_size_quantit
                     line_output[i - current_window_num] = test_output[i]
                     line_label.append(batch_label[i])
 
-                # Determine whether this line is abnormal or not.
-                abnormal_flag = linePrediction_Threshold(line_output, line_label, threshold)
                 if lineNum in abnormal_label:
                     ground_truth = 1
                 else:
                     ground_truth = 0
+
                 generate_predict_and_label(line_output, line_label, ground_truth)
-                print("line:", lineNum, "Predicted Label:", abnormal_flag, "Ground Truth:", ground_truth)
 
                 # When this line(block) is flagged as abnormal
-                if abnormal_flag == 1:
-                    if lineNum in abnormal_label:
-                        TP += 1
-                    else:
-                        FP += 1
-
-                # When this line(block) is not flagged as abnormal
-                else:
-                    if lineNum in abnormal_label:
-                        FN += 1
-                    else:
-                        TN += 1
                 lineNum += 1
-                ALL += 1
                 current_window_num += num_of_windows
-                abnormal_flag = 0
                 # End of for loop. Move on to the next line (Next block of log events)
 
     # Compute precision, recall and F1-measure
-    if TP + FP == 0:
-        P = 0
-    else:
-        P = 100 * TP / (TP + FP)
-
-    if TP + FN == 0:
-        R = 0
-    else:
-        R = 100 * TP / (TP + FN)
-
-    if P + R == 0:
-        F1 = 0
-    else:
-        F1 = 2 * P * R / (P + R)
-
-    Acc = (TP + TN) * 100 / ALL
-    print('FP: {}, FN: {}, TP: {}, TN: {}'.format(FP, FN, TP, TN))
-    print('Acc: {:.3f}, Precision: {:.3f}%, Recall: {:.3f}%, F1-measure: {:.3f}%'.format(Acc, P, R, F1))
-    print('Finished Predicting')
     elapsed_time = time.time() - start_time
     print('elapsed_time: {}'.format(elapsed_time))
     precisions, recalls, thresholds = precision_recall_curve(label_, predict)
@@ -282,7 +220,7 @@ def get_threshold_value(window_length, input_size_sequential, input_size_quantit
     best_f1_score_index = np.argmax(f1_scores[np.isfinite(f1_scores)])
 
     # 阈值
-    print(best_f1_score, thresholds[best_f1_score_index])
+    print('best_f1_score: {}, threshold: {}'.format(best_f1_score, thresholds[best_f1_score_index]))
     return thresholds[best_f1_score_index]
 
 
@@ -324,4 +262,4 @@ if __name__ == '__main__':
 
     get_threshold_value(window_length, input_size_sequential, input_size_quantitive, hidden_size, num_of_layers, num_of_classes,
                model_out_path + 'Adam_batch_size=' + str(batch_size) + ';epoch=' + str(num_epochs) + '.pt',
-               valid_file, pattern_vec_out_path, threshold)
+               valid_file, pattern_vec_out_path)
