@@ -44,8 +44,7 @@ def linePrediction_topK(predicted, label, num_candidates):
     dim0, dim1 = predicted.shape  # predicted is the output of all the windows in a log block
     abnormal_flag = 0
     for i in range(dim0):
-        if label[i] not in torch.argsort(predicted[i])[
-                           -num_candidates:]:  # The block is abnormal if the label is not in the top num_candidates
+        if label[i] not in torch.argsort(predicted[i])[-num_candidates:]:  # The block is abnormal if the label is not in the top num_candidates
             abnormal_flag = 1
     return abnormal_flag
 
@@ -57,9 +56,9 @@ def linePrediction_Threshold(predicted, label, threshold):
     dim0, dim1 = predicted.shape  # predicted is the output of all the windows in a log block
     abnormal_flag = 0
     for i in range(dim0):
-        #print(label[i], predicted[i][label[i]])
         if predicted[i][label[i]] < threshold:
             abnormal_flag = 1
+            print(label[i], predicted[i][label[i]])
     return abnormal_flag
 
 
@@ -306,16 +305,16 @@ if __name__ == '__main__':
     hidden_size = 128
     num_of_layers = 2
     num_of_classes = 31
-    num_epochs = 10
+    num_epochs = 15
 
     window_length = 5
     input_size_sequential = 300
     input_size_quantitive = 31
-    batch_size = 500
+    batch_size = 512
     test_batch_size = 64
 
     num_candidates = 5
-    threshold = 0.28
+    threshold = 0.000005
 
     logparser_structed_file = '../../Data/logparser_result/Drain/HDFS_split_40w.log_structured.csv'
     logparser_event_file = '../../Data/logparser_result/Drain/HDFS_split_40w.log_templates.csv'

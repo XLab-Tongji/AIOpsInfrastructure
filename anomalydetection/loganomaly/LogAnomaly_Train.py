@@ -89,7 +89,9 @@ class Model(nn.Module):
         out_1, _ = self.lstm1(input_1, (h0_1, c0_1))
         multi_out = torch.cat((out_0[:, -1, :], out_1[:, -1, :]), -1)
         fc_out = self.fc(multi_out)
-        out = torch.softmax(fc_out, dim=-1)
+        #print(fc_out)
+        out = torch.sigmoid(fc_out)
+        #print(out)
         return out
 
 
@@ -137,7 +139,7 @@ def train_model(window_length, input_size_sequential, input_size_quantitive, hid
             train_loss += loss.item()
             optimizer.step()
         print(
-            'Epoch [{}/{}], training_loss: {:.6f}'.format(epoch + 1, num_epochs, train_loss / len(data_loader.dataset)))
+            'Epoch [{}/{}], training_loss: {:.10f}'.format(epoch + 1, num_epochs, train_loss / len(data_loader.dataset)))
         if (epoch + 1) % num_epochs == 0:
             if not os.path.isdir(model_output_directory):
                 os.makedirs(model_output_directory)
@@ -162,12 +164,12 @@ if __name__ == '__main__':
     hidden_size = 128
     num_of_layers = 2
     num_of_classes = 31
-    num_epochs = 10
+    num_epochs = 15
 
     window_length = 5
     input_size_sequential = 300
     input_size_quantitive = 31
-    batch_size = 500
+    batch_size = 512
 
     logparser_structed_file = '../../Data/logparser_result/Drain/HDFS_split_40w.log_structured.csv'
     logparser_event_file = '../../Data/logparser_result/Drain/HDFS_split_40w.log_templates.csv'
