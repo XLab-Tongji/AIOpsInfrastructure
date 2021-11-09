@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.optim as optim
 from tensorboardX import SummaryWriter
 from torch.utils.data import TensorDataset, DataLoader
-
+import torch.nn.functional as F
 from extractfeature import template2Vec_preprocessor
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -88,7 +88,8 @@ class Model(nn.Module):
         c0_1 = torch.zeros(self.num_of_layers, input_1.size(0), self.hidden_size).to(device)
         out_1, _ = self.lstm1(input_1, (h0_1, c0_1))
         multi_out = torch.cat((out_0[:, -1, :], out_1[:, -1, :]), -1)
-        out = self.fc(multi_out)
+        fc_out = self.fc(multi_out)
+        out = torch.softmax(fc_out, dim=-1)
         return out
 
 
@@ -126,7 +127,7 @@ def train_model(window_length, input_size_sequential, input_size_quantitive, hid
             quan = quan.clone().detach().view(-1, window_length, input_size_quantitive).to(device)
             #print("Sequential shape:", seq.shape, "Quantitative shape:", quan.shape, "Label shape:", label.shape)
             output = model(seq, quan)
-            # print(output.shape)
+            # print(output)
             # print(output, label)
             loss = criterion(output, label.to(device).long())
 
