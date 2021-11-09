@@ -3,7 +3,6 @@ import time
 import pandas
 import torch
 from LogAnomaly_Train import Model
-from anomalydetection.loganomaly.FindThresholdValue import get_threshold_value
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -315,6 +314,7 @@ if __name__ == '__main__':
     test_batch_size = 64
 
     num_candidates = 5
+    threshold =  3.714398e-07
 
     logparser_structed_file = '../../Data/logparser_result/Drain/HDFS_split_40w.log_structured.csv'
     logparser_event_file = '../../Data/logparser_result/Drain/HDFS_split_40w.log_templates.csv'
@@ -333,11 +333,6 @@ if __name__ == '__main__':
     wordvec_file_path = 'G:\\crawl-300d-2M.vec'
     pattern_vec_out_path = '../../Data/DrainResult-HDFS/loganomaly_model_train/pattern_vec'
 
-    valid_file = sequential_directory + valid_file_name
-
-    threshold =  get_threshold_value(window_length, input_size_sequential, input_size_quantitive, hidden_size, num_of_layers, num_of_classes,
-               model_out_path + 'Adam_batch_size=' + str(batch_size) + ';epoch=' + str(num_epochs) + '.pt',
-               valid_file, pattern_vec_out_path, threshold)
 
     do_predict(window_length, input_size_sequential, input_size_quantitive, hidden_size, num_of_layers, num_of_classes,
                model_out_path + 'Adam_batch_size=' + str(batch_size) + ';epoch=' + str(num_epochs) + '.pt',
