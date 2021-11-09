@@ -83,14 +83,14 @@ def generate_train_and_test_file(logparser_structed_file, logparser_event_file, 
         validation_file_obj.write('BlockId,Sequence,label\n')
         # 正常数据集8：1：1分配在训练集，测试集，验证集
         for i in range(len(normal_block_ids)):
-            if i < len(normal_block_ids) * 0.2:
+            if i < len(normal_block_ids) * 0.8:
                 # blockid
                 train_file_obj.write(str(normal_block_ids[i]) + ', ')
                 # 序列
                 train_file_obj.write(' '.join([str(num_id) for num_id in session_dic[normal_block_ids[i]]]))
                 # 表示是否异常
                 train_file_obj.write(', 0\n')
-            elif i < len(normal_block_ids) * 0.4:
+            elif i < len(normal_block_ids) * 0.9:
                 validation_file_obj.write(str(normal_block_ids[i]) + ', ')
                 validation_file_obj.write(' '.join([str(num_id) for num_id in session_dic[normal_block_ids[i]]]))
                 validation_file_obj.write(', 0\n')
