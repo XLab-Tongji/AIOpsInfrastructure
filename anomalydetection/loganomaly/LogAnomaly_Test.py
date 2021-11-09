@@ -3,6 +3,7 @@ import time
 import pandas
 import torch
 from LogAnomaly_Train import Model
+from anomalydetection.loganomaly.FindThresholdValue import get_threshold_value
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -56,9 +57,9 @@ def linePrediction_Threshold(predicted, label, threshold):
     dim0, dim1 = predicted.shape  # predicted is the output of all the windows in a log block
     abnormal_flag = 0
     for i in range(dim0):
+        #print(label[i], predicted[i][label[i]])
         if predicted[i][label[i]] < threshold:
             abnormal_flag = 1
-            print(label[i], predicted[i][label[i]])
     return abnormal_flag
 
 
@@ -159,8 +160,8 @@ def do_predict(window_length, input_size_sequential, input_size_quantitive, hidd
                     line_label.append(batch_label[i])
 
                 # Determine whether this line is abnormal or not.
-                #abnormal_flag = linePrediction_Threshold(line_output, line_label, threshold)
-                abnormal_flag = linePrediction_topK(line_output, line_label, num_candidates)
+                abnormal_flag = linePrediction_Threshold(line_output, line_label, threshold)
+                #abnormal_flag = linePrediction_topK(line_output, line_label, num_candidates)
                 if lineNum in abnormal_label:
                     ground_truth = 1
                 else:
@@ -249,8 +250,8 @@ def do_predict(window_length, input_size_sequential, input_size_quantitive, hidd
                     line_label.append(batch_label[i])
 
                 # Determine whether this line is abnormal or not.
-                #abnormal_flag = linePrediction_Threshold(line_output, line_label, threshold)
-                abnormal_flag = linePrediction_topK(line_output, line_label, num_candidates)
+                abnormal_flag = linePrediction_Threshold(line_output, line_label, threshold)
+                #abnormal_flag = linePrediction_topK(line_output, line_label, num_candidates)
                 if lineNum in abnormal_label:
                     ground_truth = 1
                 else:
@@ -314,7 +315,6 @@ if __name__ == '__main__':
     test_batch_size = 64
 
     num_candidates = 5
-    threshold = 0.000005
 
     logparser_structed_file = '../../Data/logparser_result/Drain/HDFS_split_40w.log_structured.csv'
     logparser_event_file = '../../Data/logparser_result/Drain/HDFS_split_40w.log_templates.csv'
@@ -332,6 +332,12 @@ if __name__ == '__main__':
 
     wordvec_file_path = 'G:\\crawl-300d-2M.vec'
     pattern_vec_out_path = '../../Data/DrainResult-HDFS/loganomaly_model_train/pattern_vec'
+
+    valid_file = sequential_directory + valid_file_name
+
+    threshold =  get_threshold_value(window_length, input_size_sequential, input_size_quantitive, hidden_size, num_of_layers, num_of_classes,
+               model_out_path + 'Adam_batch_size=' + str(batch_size) + ';epoch=' + str(num_epochs) + '.pt',
+               valid_file, pattern_vec_out_path, threshold)
 
     do_predict(window_length, input_size_sequential, input_size_quantitive, hidden_size, num_of_layers, num_of_classes,
                model_out_path + 'Adam_batch_size=' + str(batch_size) + ';epoch=' + str(num_epochs) + '.pt',

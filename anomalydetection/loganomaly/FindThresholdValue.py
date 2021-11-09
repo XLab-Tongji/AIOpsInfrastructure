@@ -293,16 +293,16 @@ if __name__ == '__main__':
     hidden_size = 128
     num_of_layers = 2
     num_of_classes = 31
-    num_epochs = 20
+    num_epochs = 15
 
     window_length = 5
     input_size_sequential = 300
     input_size_quantitive = 31
-    batch_size = 500
+    batch_size = 512
     test_batch_size = 64
 
     num_candidates = 5
-    threshold = -0.95481145
+    threshold = 3.714398e-07
 
     logparser_structed_file = '../../Data/logparser_result/Drain/HDFS_split_40w.log_structured.csv'
     logparser_event_file = '../../Data/logparser_result/Drain/HDFS_split_40w.log_templates.csv'
