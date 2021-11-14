@@ -1,90 +1,52 @@
+# coding:utf-8
 import json
 import time
-import pandas
+
+import numpy as np
+import LogAnomaly_Test
 import torch
+from sklearn.metrics import precision_recall_curve
+
 from LogAnomaly_Train import Model
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-
-def load_model(input_size_1, input_size_2, hidden_size, num_layers, num_classes, model_path):
-    model = Model(input_size_1, input_size_2, hidden_size, num_layers, num_classes).to(device)
-    model.load_state_dict(torch.load(model_path, map_location='cpu'))
-    model.eval()
-    print('model_path: {}'.format(model_path))
-    return model
-
-
-"""
-Generate test file and anomaly line labels
-"""
-
-
-def generateTestFile(name, window_length):
-    log_keys_sequences = list()
-    abnormal_label = list()
-    file = pandas.read_csv(name)
-    k = 0
-    for i in range(len(file)):
-        line = [int(id) for id in file["Sequence"][i].strip().split(' ')]
-        label = file["label"][i]
-        if len(line) < window_length:
-            continue
-        else:
-            log_keys_sequences.append(tuple(line))
-            # print(label)
-            if label == 1:
-                abnormal_label.append(k)
-            k += 1
-    return log_keys_sequences, abnormal_label
-
-
-"""
-Return whether a block of event is abnormal or not
-"""
-
-
-def linePrediction_topK(predicted, label, num_candidates):
-    dim0, dim1 = predicted.shape  # predicted is the output of all the windows in a log block
-    abnormal_flag = 0
-    for i in range(dim0):
-        if label[i] not in torch.argsort(predicted[i])[
-                           -num_candidates:]:  # The block is abnormal if the label is not in the top num_candidates
-            abnormal_flag = 1
-    return abnormal_flag
-
-
-"""
-In each log block, there are multiple windows, each window has a prediction result which is a probability.
-If the prediction result of any window within a block is lower than the threshold, the block is abnormal.
-"""
 
 
 def linePrediction_Threshold(predicted, label, threshold):
     dim0, dim1 = predicted.shape  # predicted is the output of all the windows in a log block
     abnormal_flag = 0
     for i in range(dim0):
-        # print(label[i], predicted[i][label[i]])
+        #print(label[i], predicted[i][label[i]])
         if predicted[i][label[i]] < threshold:
             abnormal_flag = 1
     return abnormal_flag
 
 
+def generate_predict_and_label(predicted, label, ground_truth):
+    dim0, dim1 = predicted.shape  # predicted is the output of all the windows in a log block
+    if ground_truth == 0:
+        maxPre = 0
+        for i in range(dim0):
+            predict.append(predicted[i][label[i]])
+            label_.append(1)
+            maxPre = max(maxPre, predicted[i][label[i]])
+        # predict.append(maxPre)
+        # label_.append(1)
+    else:
+        minPre = 100000
+        for i in range(dim0):
+            minPre = min(predicted[i][label[i]], minPre)
+        label_.append(0)
+        predict.append(minPre)
+
+
 """The general idea is that since the label is attached to each block (each line), the window(length=5) is 
 moved down each line. As the window moves down each line, if the predicted result doesn't match the ground 
 truth in any of these windows, this block (this line) is flagged as abnormal. """
-
-
-def do_predict(window_length, input_size_sequential, input_size_quantitive, hidden_size, num_of_layers, num_of_classes,
-               model_output_directory, test_file, pattern_vec_file, num_candidates, threshold):
-    model = load_model(input_size_sequential, input_size_quantitive, hidden_size, num_of_layers, num_of_classes,
+def get_threshold_value(window_length, input_size_sequential, input_size_quantitive, hidden_size, num_of_layers, num_of_classes,
+                        model_output_directory, valid_file, pattern_vec_file):
+    model = LogAnomaly_Test.load_model(input_size_sequential, input_size_quantitive, hidden_size, num_of_layers, num_of_classes,
                        model_output_directory)
-    TP = 0
-    FP = 0
-    TN = 0
-    FN = 0
-    ALL = 0
-
     with open(pattern_vec_file, 'r') as pattern_file:
         PF = json.load(pattern_file)
         pattern_vec = {}
@@ -96,16 +58,14 @@ def do_predict(window_length, input_size_sequential, input_size_quantitive, hidd
             pattern_vec[int(pattern)] = vec
             i = i + 1
 
-    test_file_loader, abnormal_label = generateTestFile(test_file, window_length)  # Load test file
+    test_file_loader, abnormal_label = LogAnomaly_Test.generateTestFile(valid_file, window_length)  # Load test file
 
     start_time = time.time()
     print('Start Prediction')
     with torch.no_grad():
         batch_num = 0
-        abnormal_flag = 0
         lineNum = 0
         n = 0
-        p = 0
         # Batch with full length
         while n < (len(test_file_loader) - len(test_file_loader) % test_batch_size):
             batch_input_sequential = []
@@ -166,33 +126,14 @@ def do_predict(window_length, input_size_sequential, input_size_quantitive, hidd
                     line_output[i - current_window_num] = test_output[i]
                     line_label.append(batch_label[i])
 
-                # Determine whether this line is abnormal or not.
-                abnormal_flag = linePrediction_Threshold(line_output, line_label, threshold)
-                # abnormal_flag = linePrediction_topK(line_output, line_label, num_candidates)
                 if lineNum in abnormal_label:
                     ground_truth = 1
                 else:
                     ground_truth = 0
 
-                print("line:", lineNum, "Predicted Label:", abnormal_flag, "Ground Truth:", ground_truth)
-
-                # When this line(block) is flagged as abnormal
-                if abnormal_flag == 1:
-                    if lineNum in abnormal_label:
-                        TP += 1
-                    else:
-                        FP += 1
-
-                # When this line(block) is not flagged as abnormal
-                else:
-                    if lineNum in abnormal_label:
-                        FN += 1
-                    else:
-                        TN += 1
+                generate_predict_and_label(line_output, line_label, ground_truth)
                 lineNum += 1
-                ALL += 1
                 current_window_num += num_of_windows
-                abnormal_flag = 0
                 # End of for loop. Move on to the next line (Next block of log events)
             batch_num += 1
             n += test_batch_size
@@ -256,60 +197,37 @@ def do_predict(window_length, input_size_sequential, input_size_quantitive, hidd
                     line_output[i - current_window_num] = test_output[i]
                     line_label.append(batch_label[i])
 
-                # Determine whether this line is abnormal or not.
-                abnormal_flag = linePrediction_Threshold(line_output, line_label, threshold)
-                # abnormal_flag = linePrediction_topK(line_output, line_label, num_candidates)
                 if lineNum in abnormal_label:
                     ground_truth = 1
                 else:
                     ground_truth = 0
 
-                print("line:", lineNum, "Predicted Label:", abnormal_flag, "Ground Truth:", ground_truth)
+                generate_predict_and_label(line_output, line_label, ground_truth)
 
                 # When this line(block) is flagged as abnormal
-                if abnormal_flag == 1:
-                    if lineNum in abnormal_label:
-                        TP += 1
-                    else:
-                        FP += 1
-
-                # When this line(block) is not flagged as abnormal
-                else:
-                    if lineNum in abnormal_label:
-                        FN += 1
-                    else:
-                        TN += 1
                 lineNum += 1
-                ALL += 1
                 current_window_num += num_of_windows
-                abnormal_flag = 0
                 # End of for loop. Move on to the next line (Next block of log events)
 
     # Compute precision, recall and F1-measure
-    if TP + FP == 0:
-        P = 0
-    else:
-        P = 100 * TP / (TP + FP)
-
-    if TP + FN == 0:
-        R = 0
-    else:
-        R = 100 * TP / (TP + FN)
-
-    if P + R == 0:
-        F1 = 0
-    else:
-        F1 = 2 * P * R / (P + R)
-
-    Acc = (TP + TN) * 100 / ALL
-    print('FP: {}, FN: {}, TP: {}, TN: {}'.format(FP, FN, TP, TN))
-    print('Acc: {:.3f}, Precision: {:.3f}%, Recall: {:.3f}%, F1-measure: {:.3f}%'.format(Acc, P, R, F1))
-    print('Finished Predicting')
     elapsed_time = time.time() - start_time
     print('elapsed_time: {}'.format(elapsed_time))
+    precisions, recalls, thresholds = precision_recall_curve(label_, predict)
+
+    # 拿到最优结果以及索引
+    f1_scores = (2 * precisions * recalls) / (precisions + recalls)
+    best_f1_score = np.max(f1_scores[np.isfinite(f1_scores)])
+    best_f1_score_index = np.argmax(f1_scores[np.isfinite(f1_scores)])
+
+    # 阈值
+    print('best_f1_score: {}, threshold: {}'.format(best_f1_score, thresholds[best_f1_score_index]))
+    return thresholds[best_f1_score_index]
 
 
 if __name__ == '__main__':
+    predict = []
+
+    label_ = []
     hidden_size = 128
     num_of_layers = 2
     num_of_classes = 31
@@ -322,7 +240,7 @@ if __name__ == '__main__':
     test_batch_size = 64
 
     num_candidates = 5
-    threshold = 3.714397962539806e-07
+    threshold = 3.714398e-07
 
     logparser_structed_file = '../../Data/logparser_result/Drain/HDFS_split_40w.log_structured.csv'
     logparser_event_file = '../../Data/logparser_result/Drain/HDFS_split_40w.log_templates.csv'
@@ -335,12 +253,13 @@ if __name__ == '__main__':
 
     train_file = sequential_directory + train_file_name
     test_file = sequential_directory + test_file_name
+    valid_file = sequential_directory + valid_file_name
     train_root_path = '../../Data/DrainResult-HDFS/loganomaly_model_train/'
     model_out_path = train_root_path + 'model_out/'
 
-    wordvec_file_path = 'G:\\crawl-300d-2M.vec'
+    wordvec_file_path = '../crawl-300d-2M.vec'
     pattern_vec_out_path = '../../Data/DrainResult-HDFS/loganomaly_model_train/pattern_vec'
 
-    do_predict(window_length, input_size_sequential, input_size_quantitive, hidden_size, num_of_layers, num_of_classes,
+    get_threshold_value(window_length, input_size_sequential, input_size_quantitive, hidden_size, num_of_layers, num_of_classes,
                model_out_path + 'Adam_batch_size=' + str(batch_size) + ';epoch=' + str(num_epochs) + '.pt',
-               test_file, pattern_vec_out_path, num_candidates, threshold)
+               valid_file, pattern_vec_out_path)

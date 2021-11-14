@@ -6,3 +6,4 @@
 # ignore pycache
 */__pycache__/
 **/__pycache__/
+crawl-300d-2M.vec
