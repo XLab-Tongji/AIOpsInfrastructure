@@ -2,7 +2,7 @@ import json
 import time
 import pandas
 import torch
-from LogAnomaly_Train import Model
+from anomalydetection.loganomaly.LogAnomaly_Train import Model
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -76,7 +76,7 @@ truth in any of these windows, this block (this line) is flagged as abnormal. ""
 
 
 def do_predict(window_length, input_size_sequential, input_size_quantitive, hidden_size, num_of_layers, num_of_classes,
-               model_output_directory, test_file, pattern_vec_file, num_candidates, threshold):
+               model_output_directory, test_file, pattern_vec_file, num_candidates, threshold, test_batch_size):
     model = load_model(input_size_sequential, input_size_quantitive, hidden_size, num_of_layers, num_of_classes,
                        model_output_directory)
     TP = 0
@@ -167,14 +167,14 @@ def do_predict(window_length, input_size_sequential, input_size_quantitive, hidd
                     line_label.append(batch_label[i])
 
                 # Determine whether this line is abnormal or not.
-                abnormal_flag = linePrediction_Threshold(line_output, line_label, threshold)
-                # abnormal_flag = linePrediction_topK(line_output, line_label, num_candidates)
+                # abnormal_flag = linePrediction_Threshold(line_output, line_label, threshold)
+                abnormal_flag = linePrediction_topK(line_output, line_label, num_candidates)
                 if lineNum in abnormal_label:
                     ground_truth = 1
                 else:
                     ground_truth = 0
 
-                print("line:", lineNum, "Predicted Label:", abnormal_flag, "Ground Truth:", ground_truth)
+                # print("line:", lineNum, "Predicted Label:", abnormal_flag, "Ground Truth:", ground_truth)
 
                 # When this line(block) is flagged as abnormal
                 if abnormal_flag == 1:
@@ -257,14 +257,14 @@ def do_predict(window_length, input_size_sequential, input_size_quantitive, hidd
                     line_label.append(batch_label[i])
 
                 # Determine whether this line is abnormal or not.
-                abnormal_flag = linePrediction_Threshold(line_output, line_label, threshold)
-                # abnormal_flag = linePrediction_topK(line_output, line_label, num_candidates)
+                # abnormal_flag = linePrediction_Threshold(line_output, line_label, threshold)
+                abnormal_flag = linePrediction_topK(line_output, line_label, num_candidates)
                 if lineNum in abnormal_label:
                     ground_truth = 1
                 else:
                     ground_truth = 0
 
-                print("line:", lineNum, "Predicted Label:", abnormal_flag, "Ground Truth:", ground_truth)
+                #print("line:", lineNum, "Predicted Label:", abnormal_flag, "Ground Truth:", ground_truth)
 
                 # When this line(block) is flagged as abnormal
                 if abnormal_flag == 1:
