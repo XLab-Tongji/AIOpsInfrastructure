@@ -3,6 +3,7 @@ import os
 from extractfeature import template2Vec_preprocessor
 from anomalydetection.loganomaly import LogAnomaly_Train
 from anomalydetection.loganomaly import LogAnomaly_Test
+from anomalydetection.loganomaly import FindThresholdValue
 
 
 # parameters for early prepare
@@ -24,7 +25,7 @@ variable_symbol = '<*>'
 hidden_size = 128
 num_of_layers = 2
 num_of_classes = 48
-num_epochs = 30
+num_epochs = 50
 
 window_length = 5
 input_size_sequential = 300
@@ -33,10 +34,12 @@ batch_size = 512
 # for log anomaly
 model_out_path = train_root_path + 'model_out/'
 train_file = sequential_directory + train_file_name
+valid_file = sequential_directory + valid_file_name
 pattern_vec_file = pattern_vec_out_path
 
 # predict parameters
 num_of_candidates = 5
+threshold = -1.3260
 # log anomaly sequential model parameters
 
 if not os.path.exists(sequential_directory):
@@ -62,11 +65,18 @@ def test_model():
     # do something
     LogAnomaly_Test.do_predict(window_length, input_size_sequential, input_size_quantitive, hidden_size, num_of_layers, num_of_classes,
                model_out_path + 'Adam_batch_size=' + str(batch_size) + ';epoch=' + str(num_epochs) + '.pt',
-               sequential_directory + valid_file_name, pattern_vec_file, num_of_candidates)
+               sequential_directory + valid_file_name, pattern_vec_file, num_of_candidates, threshold, batch_size)
+
+def cal_threshold():
+    FindThresholdValue.get_threshold_value(window_length, input_size_sequential, input_size_quantitive, hidden_size, num_of_layers,
+                        num_of_classes,
+                        model_out_path + 'Adam_batch_size=' + str(batch_size) + ';epoch=' + str(num_epochs) + '.pt',
+                        valid_file, pattern_vec_out_path, batch_size)
 
 
 #extract_feature()
 #pattern_to_vec()
+#print(cal_threshold())
 #train_model()
 test_model()
 

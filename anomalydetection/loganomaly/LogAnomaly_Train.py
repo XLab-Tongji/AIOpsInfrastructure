@@ -88,10 +88,7 @@ class Model(nn.Module):
         c0_1 = torch.zeros(self.num_of_layers, input_1.size(0), self.hidden_size).to(device)
         out_1, _ = self.lstm1(input_1, (h0_1, c0_1))
         multi_out = torch.cat((out_0[:, -1, :], out_1[:, -1, :]), -1)
-        fc_out = self.fc(multi_out)
-        #print(fc_out)
-        out = torch.sigmoid(fc_out)
-        #print(out)
+        out = self.fc(multi_out)
         return out
 
 

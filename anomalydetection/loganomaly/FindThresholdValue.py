@@ -3,11 +3,11 @@ import json
 import time
 
 import numpy as np
-import LogAnomaly_Test
+from anomalydetection.loganomaly import LogAnomaly_Test
 import torch
 from sklearn.metrics import precision_recall_curve
 
-from LogAnomaly_Train import Model
+from anomalydetection.loganomaly.LogAnomaly_Train import Model
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -22,13 +22,13 @@ def linePrediction_Threshold(predicted, label, threshold):
     return abnormal_flag
 
 
-def generate_predict_and_label(predicted, label, ground_truth):
+def generate_predict_and_label(predict, labels, predicted, label, ground_truth):
     dim0, dim1 = predicted.shape  # predicted is the output of all the windows in a log block
     if ground_truth == 0:
         maxPre = 0
         for i in range(dim0):
             predict.append(predicted[i][label[i]])
-            label_.append(1)
+            labels.append(1)
             maxPre = max(maxPre, predicted[i][label[i]])
         # predict.append(maxPre)
         # label_.append(1)
@@ -36,7 +36,7 @@ def generate_predict_and_label(predicted, label, ground_truth):
         minPre = 100000
         for i in range(dim0):
             minPre = min(predicted[i][label[i]], minPre)
-        label_.append(0)
+        labels.append(0)
         predict.append(minPre)
 
 
@@ -44,9 +44,11 @@ def generate_predict_and_label(predicted, label, ground_truth):
 moved down each line. As the window moves down each line, if the predicted result doesn't match the ground 
 truth in any of these windows, this block (this line) is flagged as abnormal. """
 def get_threshold_value(window_length, input_size_sequential, input_size_quantitive, hidden_size, num_of_layers, num_of_classes,
-                        model_output_directory, valid_file, pattern_vec_file):
+                        model_output_directory, valid_file, pattern_vec_file, test_batch_size):
     model = LogAnomaly_Test.load_model(input_size_sequential, input_size_quantitive, hidden_size, num_of_layers, num_of_classes,
                        model_output_directory)
+    predict = []
+    labels = []
     with open(pattern_vec_file, 'r') as pattern_file:
         PF = json.load(pattern_file)
         pattern_vec = {}
@@ -131,7 +133,7 @@ def get_threshold_value(window_length, input_size_sequential, input_size_quantit
                 else:
                     ground_truth = 0
 
-                generate_predict_and_label(line_output, line_label, ground_truth)
+                generate_predict_and_label(predict, labels, line_output, line_label, ground_truth)
                 lineNum += 1
                 current_window_num += num_of_windows
                 # End of for loop. Move on to the next line (Next block of log events)
@@ -202,7 +204,7 @@ def get_threshold_value(window_length, input_size_sequential, input_size_quantit
                 else:
                     ground_truth = 0
 
-                generate_predict_and_label(line_output, line_label, ground_truth)
+                generate_predict_and_label(predict, labels, line_output, line_label, ground_truth)
 
                 # When this line(block) is flagged as abnormal
                 lineNum += 1
@@ -212,7 +214,7 @@ def get_threshold_value(window_length, input_size_sequential, input_size_quantit
     # Compute precision, recall and F1-measure
     elapsed_time = time.time() - start_time
     print('elapsed_time: {}'.format(elapsed_time))
-    precisions, recalls, thresholds = precision_recall_curve(label_, predict)
+    precisions, recalls, thresholds = precision_recall_curve(labels, predict)
 
     # 拿到最优结果以及索引
     f1_scores = (2 * precisions * recalls) / (precisions + recalls)
@@ -225,9 +227,6 @@ def get_threshold_value(window_length, input_size_sequential, input_size_quantit
 
 
 if __name__ == '__main__':
-    predict = []
-
-    label_ = []
     hidden_size = 128
     num_of_layers = 2
     num_of_classes = 31
