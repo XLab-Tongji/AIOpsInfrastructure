@@ -44,7 +44,7 @@ def generate_predict_and_label(predict, labels, predicted, label, ground_truth):
 moved down each line. As the window moves down each line, if the predicted result doesn't match the ground 
 truth in any of these windows, this block (this line) is flagged as abnormal. """
 def get_threshold_value(window_length, input_size_sequential, input_size_quantitive, hidden_size, num_of_layers, num_of_classes,
-                        model_output_directory, valid_file, pattern_vec_file, test_batch_size):
+                        model_output_directory, valid_file, pattern_vec_file):
     model = LogAnomaly_Test.load_model(input_size_sequential, input_size_quantitive, hidden_size, num_of_layers, num_of_classes,
                        model_output_directory)
     predict = []
@@ -115,6 +115,7 @@ def get_threshold_value(window_length, input_size_sequential, input_size_quantit
             quan = torch.tensor(quan, dtype=torch.float).view(-1, window_length, input_size_quantitive).to(device)
             # print(seq.shape, quan.shape)
             test_output = model(seq, quan)
+            test_output = torch.nn.functional.softmax(test_output, dim=1)
             # print(test_output.shape)
             #  Reconstruct the output to the original log blocks
             current_window_num = 0
@@ -187,6 +188,7 @@ def get_threshold_value(window_length, input_size_sequential, input_size_quantit
             quan = torch.tensor(quan, dtype=torch.float).view(-1, window_length, input_size_quantitive).to(device)
             # print(seq.shape, quan.shape)
             test_output = model(seq, quan)
+            test_output = torch.nn.functional.softmax(test_output, dim=1)
             # print(test_output.shape)
 
             current_window_num = 0
@@ -239,7 +241,7 @@ if __name__ == '__main__':
     test_batch_size = 64
 
     num_candidates = 5
-    threshold = 3.714398e-07
+    threshold = 5.3300185174753184e-14
 
     logparser_structed_file = '../../Data/logparser_result/Drain/HDFS_split_40w.log_structured.csv'
     logparser_event_file = '../../Data/logparser_result/Drain/HDFS_split_40w.log_templates.csv'
