@@ -153,7 +153,7 @@ def do_predict(window_length, input_size_sequential, input_size_quantitive, hidd
             quan = torch.tensor(quan, dtype=torch.float).view(-1, window_length, input_size_quantitive).to(device)
             # print(seq.shape, quan.shape)
             test_output = model(seq, quan)
-            test_output = torch.nn.functional.softmax(test_output, dim=1)
+            test_output = torch.sigmoid(test_output)
             # print(test_output.shape)
             #  Reconstruct the output to the original log blocks
             current_window_num = 0
@@ -245,7 +245,7 @@ def do_predict(window_length, input_size_sequential, input_size_quantitive, hidd
             quan = torch.tensor(quan, dtype=torch.float).view(-1, window_length, input_size_quantitive).to(device)
             # print(seq.shape, quan.shape)
             test_output = model(seq, quan)
-            test_output = torch.nn.functional.softmax(test_output, dim=1)
+            test_output = torch.sigmoid(test_output)
             # print(test_output.shape)
 
             current_window_num = 0
@@ -324,7 +324,7 @@ if __name__ == '__main__':
     test_batch_size = 64
 
     num_candidates = 5
-    threshold = 5.3300185174753184e-14
+    threshold = 3.714397962539806e-07
 
     logparser_structed_file = '../../Data/logparser_result/Drain/HDFS_split_40w.log_structured.csv'
     logparser_event_file = '../../Data/logparser_result/Drain/HDFS_split_40w.log_templates.csv'

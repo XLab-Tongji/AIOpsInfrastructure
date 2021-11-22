@@ -25,19 +25,15 @@ def linePrediction_Threshold(predicted, label, threshold):
 def generate_predict_and_label(predict, labels, predicted, label, ground_truth):
     dim0, dim1 = predicted.shape  # predicted is the output of all the windows in a log block
     if ground_truth == 0:
-        maxPre = 0
         for i in range(dim0):
             predict.append(predicted[i][label[i]])
-            labels.append(1)
-            maxPre = max(maxPre, predicted[i][label[i]])
-        # predict.append(maxPre)
-        # label_.append(1)
+            labels.append(0)
     else:
         minPre = 100000
         for i in range(dim0):
             minPre = min(predicted[i][label[i]], minPre)
-        labels.append(0)
-        predict.append(minPre)
+        labels.append(1)
+        predict.append(1 - minPre)
 
 
 """The general idea is that since the label is attached to each block (each line), the window(length=5) is 
@@ -115,7 +111,7 @@ def get_threshold_value(window_length, input_size_sequential, input_size_quantit
             quan = torch.tensor(quan, dtype=torch.float).view(-1, window_length, input_size_quantitive).to(device)
             # print(seq.shape, quan.shape)
             test_output = model(seq, quan)
-            test_output = torch.nn.functional.softmax(test_output, dim=1)
+            test_output = torch.sigmoid(test_output)
             # print(test_output.shape)
             #  Reconstruct the output to the original log blocks
             current_window_num = 0
@@ -188,7 +184,7 @@ def get_threshold_value(window_length, input_size_sequential, input_size_quantit
             quan = torch.tensor(quan, dtype=torch.float).view(-1, window_length, input_size_quantitive).to(device)
             # print(seq.shape, quan.shape)
             test_output = model(seq, quan)
-            test_output = torch.nn.functional.softmax(test_output, dim=1)
+            test_output = torch.sigmoid(test_output)
             # print(test_output.shape)
 
             current_window_num = 0
@@ -224,8 +220,8 @@ def get_threshold_value(window_length, input_size_sequential, input_size_quantit
     best_f1_score_index = np.argmax(f1_scores[np.isfinite(f1_scores)])
 
     # 阈值
-    print('best_f1_score: {}, threshold: {}'.format(best_f1_score, thresholds[best_f1_score_index]))
-    return thresholds[best_f1_score_index]
+    print('best_f1_score: {}, threshold: {}'.format(best_f1_score, 1 - thresholds[best_f1_score_index]))
+    return 1 - thresholds[best_f1_score_index]
 
 
 if __name__ == '__main__':
@@ -241,7 +237,7 @@ if __name__ == '__main__':
     test_batch_size = 64
 
     num_candidates = 5
-    threshold = 5.3300185174753184e-14
+    threshold = 4.172325134277344e-07
 
     logparser_structed_file = '../../Data/logparser_result/Drain/HDFS_split_40w.log_structured.csv'
     logparser_event_file = '../../Data/logparser_result/Drain/HDFS_split_40w.log_templates.csv'
