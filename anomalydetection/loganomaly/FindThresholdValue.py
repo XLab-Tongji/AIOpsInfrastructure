@@ -26,7 +26,7 @@ def generate_predict_and_label(predict, labels, predicted, label, ground_truth):
     dim0, dim1 = predicted.shape  # predicted is the output of all the windows in a log block
     if ground_truth == 0:
         for i in range(dim0):
-            predict.append(predicted[i][label[i]])
+            predict.append(1 - predicted[i][label[i]])
             labels.append(0)
     else:
         minPre = 100000
@@ -225,6 +225,7 @@ def get_threshold_value(window_length, input_size_sequential, input_size_quantit
 
 
 if __name__ == '__main__':
+    np.seterr(divide='ignore', invalid='ignore')
     hidden_size = 128
     num_of_layers = 2
     num_of_classes = 31
