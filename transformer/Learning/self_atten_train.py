@@ -6,9 +6,9 @@ import numpy as np
 from torch.optim import optimizer
 
 
-from bgl_preprocessor import log_index_sequence_to_vec
+from transformer.bgl_preprocessor import log_index_sequence_to_vec
 
-from Encoder.Encoder import *
+from transformer.Encoder.Encoder import *
 
 PADDING_INDEX = 1
 
@@ -52,7 +52,7 @@ class SelfAttentive(nn.Module):
 
         # enc_src = [batch size, src len, hid dim]
         # result = torch.linalg.norm(enc_src, dim=1, ord=2)**2
-        result = torch.linalg.norm(enc_src, dim=1, ord=2) ** 2
+        result = torch.norm(enc_src, dim=1, p=2)
 
         # print("最后输出: ", result)
         # print("res:", result)
@@ -197,7 +197,7 @@ def evaluateEpsilon(model, INDEX_TO_TENSOR, NN_EMBEDDING, INDEX_VEC_PATH,
             src = log_index_sequence_to_vec(src, INDEX_VEC_PATH)
             output = model(src, src_mask)
             print("output", output)
-
+            print(trg)
             # output = [batch size,1]
             zero = torch.zeros(output.shape)
             one = torch.ones(output.shape)

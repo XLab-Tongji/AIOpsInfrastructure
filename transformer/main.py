@@ -9,8 +9,10 @@
 
 import numpy as np
 import os
-from bgl_preprocessor import *
-from Learning.self_atten_train import train_model, test_model
+from transformer.bgl_preprocessor import *
+from transformer.Learning.self_atten_train import train_model, test_model
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 origin_log_path = "data/BGL_2k.log"
 wordvec_path = "crawl-300d-2M.vec"
@@ -33,10 +35,10 @@ FEEDFORWARD_DIM = 2048
 DROPOUT_RATE = 0.5
 LEARNING_RATE = 0.005
 
-N_EPOCHS = 100
+N_EPOCHS = 20
 CLIP = 1
 MODEL_OUTPUT_PATH = "output/model.pt"
-BATCH_SIZE = 10
+BATCH_SIZE = 64
 PAD_IDX = 1
 EMM_IDX = 0
 
@@ -151,7 +153,7 @@ def train():
                           INDEX_TO_TENSOR=index_to_tensor,
                           NN_EMBEDDING=nn_embedding,
                           INDEX_VEC_PATH=index_vec_out_path,
-                          DEVICE='cpu')
+                          DEVICE=device)
 
 
 def test():
@@ -169,7 +171,7 @@ def test():
                INDEX_TO_TENSOR=index_to_tensor,
                NN_EMBEDDING=nn_embedding,
                INDEX_VEC_PATH=index_vec_out_path,
-               DEVICE='cpu')
+               DEVICE=device)
 
 
 extract_feature()
