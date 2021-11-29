@@ -153,6 +153,7 @@ def do_predict(window_length, input_size_sequential, input_size_quantitive, hidd
             quan = torch.tensor(quan, dtype=torch.float).view(-1, window_length, input_size_quantitive).to(device)
             # print(seq.shape, quan.shape)
             test_output = model(seq, quan)
+            test_output = torch.sigmoid(test_output)
             # print(test_output.shape)
             #  Reconstruct the output to the original log blocks
             current_window_num = 0
@@ -244,6 +245,7 @@ def do_predict(window_length, input_size_sequential, input_size_quantitive, hidd
             quan = torch.tensor(quan, dtype=torch.float).view(-1, window_length, input_size_quantitive).to(device)
             # print(seq.shape, quan.shape)
             test_output = model(seq, quan)
+            test_output = torch.sigmoid(test_output)
             # print(test_output.shape)
 
             current_window_num = 0
@@ -343,4 +345,4 @@ if __name__ == '__main__':
 
     do_predict(window_length, input_size_sequential, input_size_quantitive, hidden_size, num_of_layers, num_of_classes,
                model_out_path + 'Adam_batch_size=' + str(batch_size) + ';epoch=' + str(num_epochs) + '.pt',
-               test_file, pattern_vec_out_path, num_candidates, threshold)
+               test_file, pattern_vec_out_path, num_candidates, threshold, test_batch_size)
