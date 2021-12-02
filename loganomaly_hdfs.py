@@ -39,7 +39,7 @@ pattern_vec_file = pattern_vec_out_path
 
 # predict parameters
 num_of_candidates = 5
-threshold = -1.3260
+threshold = 0.20812571048736572
 # log anomaly sequential model parameters
 
 if not os.path.exists(sequential_directory):
@@ -78,6 +78,7 @@ def cal_threshold():
 #pattern_to_vec()
 #print(cal_threshold())
 #train_model()
+#cal_threshold()
 test_model()
 
 # deep log

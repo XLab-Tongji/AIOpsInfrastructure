@@ -168,8 +168,8 @@ def do_predict(window_length, input_size_sequential, input_size_quantitive, hidd
                     line_label.append(batch_label[i])
 
                 # Determine whether this line is abnormal or not.
-                # abnormal_flag = linePrediction_Threshold(line_output, line_label, threshold)
-                abnormal_flag = linePrediction_topK(line_output, line_label, num_candidates)
+                abnormal_flag = linePrediction_Threshold(line_output, line_label, threshold)
+                # abnormal_flag = linePrediction_topK(line_output, line_label, num_candidates)
                 if lineNum in abnormal_label:
                     ground_truth = 1
                 else:

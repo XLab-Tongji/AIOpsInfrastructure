@@ -40,7 +40,7 @@ def generate_predict_and_label(predict, labels, predicted, label, ground_truth):
 moved down each line. As the window moves down each line, if the predicted result doesn't match the ground 
 truth in any of these windows, this block (this line) is flagged as abnormal. """
 def get_threshold_value(window_length, input_size_sequential, input_size_quantitive, hidden_size, num_of_layers, num_of_classes,
-                        model_output_directory, valid_file, pattern_vec_file):
+                        model_output_directory, valid_file, pattern_vec_file, test_batch_size):
     model = LogAnomaly_Test.load_model(input_size_sequential, input_size_quantitive, hidden_size, num_of_layers, num_of_classes,
                        model_output_directory)
     predict = []
